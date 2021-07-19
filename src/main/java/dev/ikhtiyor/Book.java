@@ -2,12 +2,21 @@ package dev.ikhtiyor;
 
 public class Book {
 
+    private Integer id;
     private String name;
     private String author;
     private String pages;
     private String publishedDate;
 
     public Book() {
+    }
+
+    public Book(Integer id, String name, String author, String pages, String publishedDate) {
+        this.id = id;
+        this.name = name;
+        this.author = author;
+        this.pages = pages;
+        this.publishedDate = publishedDate;
     }
 
     public Book(String name, String author, String pages, String publishedDate) {
