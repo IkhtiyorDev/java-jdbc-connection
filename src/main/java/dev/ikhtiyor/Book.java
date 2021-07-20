@@ -9,6 +9,7 @@ public class Book {
     private String publishedDate;
 
     public Book() {
+
     }
 
     public Book(Integer id, String name, String author, String pages, String publishedDate) {
