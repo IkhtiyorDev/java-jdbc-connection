@@ -1,4 +1,6 @@
-package dev.ikhtiyor;
+package dev.ikhtiyor.prepareStatement;
+
+import dev.ikhtiyor.Book;
 
 import java.util.List;
 import java.util.Scanner;

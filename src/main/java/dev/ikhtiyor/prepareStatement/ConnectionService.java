@@ -1,4 +1,6 @@
-package dev.ikhtiyor;
+package dev.ikhtiyor.prepareStatement;
+
+import dev.ikhtiyor.Book;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -6,6 +8,7 @@ import java.util.List;
 
 /**
  * Bu classda database bilan bog'lanib ma'lumotlar almashish uchun ishlatiladigan methodlarni yozamiz
+ * PreparedStatement
  */
 public class ConnectionService {
 
@@ -23,13 +26,16 @@ public class ConnectionService {
                     dbUrl, dbUser, dbPassword
             );
 
-            Statement statement = connection.createStatement();
+            String query = "INSERT INTO book(name, author, pages, published_date) values(?,?,?,?);";
 
-            String query = "INSERT INTO book(name, author, pages, published_date) " +
-                    "values('" + book.getName() + "','" + book.getAuthor() + "','" + book.getPages() + "','" + book.getPublishedDate() + "');";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, book.getName());
+            preparedStatement.setString(2, book.getAuthor());
+            preparedStatement.setString(3, book.getPages());
+            preparedStatement.setString(4, book.getPublishedDate());
 
-            statement.execute(query);
-            statement.close();
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
             connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -44,10 +50,10 @@ public class ConnectionService {
             Connection connection = DriverManager.getConnection(
                     dbUrl, dbUser, dbPassword
             );
-            Statement statement = connection.createStatement();
 
             String query = "SELECT * FROM book;";
-            ResultSet resultSet = statement.executeQuery(query);
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
                 int id = resultSet.getInt("id");
@@ -66,7 +72,7 @@ public class ConnectionService {
 
                 bookList.add(book);
             }
-            statement.close();
+            preparedStatement.close();
             connection.close();
 
         } catch (SQLException throwables) {
@@ -82,17 +88,17 @@ public class ConnectionService {
             connection = DriverManager.getConnection(
                     dbUrl, dbUser, dbPassword
             );
-            Statement statement = connection.createStatement();
 
-            String query = "DELETE FROM book WHERE id =" + id + ";";
+            String query = "DELETE FROM book WHERE id = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, id);
 
-            statement.execute(query);
-            statement.close();
+            preparedStatement.executeUpdate();
+            preparedStatement.close();
             connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-
     }
 
     public void editBook(Integer id, Book book) {
@@ -102,33 +108,39 @@ public class ConnectionService {
                     dbUser,
                     dbPassword
             );
-            Statement statement = connection.createStatement();
             String query = "UPDATE book set ";
 
             if (!book.getName().isEmpty()) {
-                query = query + " name = '" + book.getName() + "',";
+                query = query + " name = ?,";
             } else if (!book.getPages().isEmpty()) {
-                query = query + " pages = '" + book.getPages() + "',";
+                query = query + " pages = ?,";
             } else if (!book.getAuthor().isEmpty()) {
-                query = query + " author = '" + book.getAuthor() + "',";
+                query = query + " author = ?,";
             } else if (!book.getPublishedDate().isEmpty()) {
-                query = query + " published_date = '" + book.getPublishedDate() + "',";
+                query = query + " published_date = ?,";
             }
 
             if (!query.equals("UPDATE book set ")) {
                 if (query.endsWith(",")) {
                     query = query.substring(0, query.length() - 1);
-                    query = query + "WHERE id=" + id + ";";
-                    statement.execute(query);
                 }
-            }
+                query = query + "WHERE id= ? ;";
 
-            statement.close();
-            connection.close();
+                PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+                preparedStatement.setString(1, book.getName());
+                preparedStatement.setString(2, book.getPages());
+                preparedStatement.setString(3, book.getAuthor());
+                preparedStatement.setString(4, book.getPublishedDate());
+                preparedStatement.setInt(5, id);
+
+                preparedStatement.executeUpdate();
+
+                preparedStatement.close();
+                connection.close();
+            }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-
     }
-
 }
