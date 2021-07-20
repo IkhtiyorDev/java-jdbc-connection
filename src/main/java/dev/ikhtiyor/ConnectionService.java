@@ -25,11 +25,12 @@ public class ConnectionService {
 
             Statement statement = connection.createStatement();
 
-            String query = "INSERT INTO book(name, author, pages, publishedDate) " +
+            String query = "INSERT INTO book(name, author, pages, published_date) " +
                     "values('" + book.getName() + "','" + book.getAuthor() + "','" + book.getPages() + "','" + book.getPublishedDate() + "');";
 
             statement.execute(query);
-
+            statement.close();
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -65,6 +66,8 @@ public class ConnectionService {
 
                 bookList.add(book);
             }
+            statement.close();
+            connection.close();
 
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -84,6 +87,8 @@ public class ConnectionService {
             String query = "DELETE FROM book WHERE id =" + id + ";";
 
             statement.execute(query);
+            statement.close();
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -97,9 +102,7 @@ public class ConnectionService {
                     dbUser,
                     dbPassword
             );
-
             Statement statement = connection.createStatement();
-
             String query = "UPDATE book set ";
 
             if (!book.getName().isEmpty()) {
@@ -115,13 +118,17 @@ public class ConnectionService {
             if (!query.equals("UPDATE book set ")) {
                 if (query.endsWith(",")) {
                     query = query.substring(0, query.length() - 1);
+                    query = query + "WHERE id=" + id + ";";
                     statement.execute(query);
                 }
             }
 
+            statement.close();
+            connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+
     }
 
 }
