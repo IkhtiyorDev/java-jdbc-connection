@@ -5,6 +5,9 @@ import dev.ikhtiyor.Book;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Oddiy statement uchun
+ */
 public class Main {
     public static String menu = "0 => Chiqish, 1 => Kitob qo'shish, 2 => Kitobni tahrirlash, 3 => Kitoblar ro'yxati, 4 => Kitobni o'chirish";
 
