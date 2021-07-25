@@ -13,23 +13,36 @@ import java.util.List;
 public class ConnectionService {
 
     //Database bilan bog'lanishimiz uchun url. Bunda { java-jdbc-connection } database nomi
-    private String dbUrl = "jdbc:postgresql://localhost:5432/java-jdbc-connection";
+    private final static String dbUrl = "jdbc:postgresql://localhost:5432/java-jdbc-connection";
     //Database bilan bog'lanishimiz uchun user nomi.
-    private String dbUser = "postgres";
+    private final static String dbUser = "postgres";
     //Database bilan bog'lanishimiz uchun parol.
-    private String dbPassword = "root123";
+    private final static String dbPassword = "root123";
+
+
+    private final static String SAVE_BOOK_SQL_QUERY = "INSERT INTO book(name, author, pages, published_date) values('%s','%s','%s','%s');";
+    private final static String GET_BOOKS_LIST_SQL_QUERY = "SELECT * FROM book;";
+    private final static String DELETE_BOOK_SQL_QUERY = "DELETE FROM book WHERE id = %d";
+    private final static String UPDATE_BOOK_SQL_QUERY = "UPDATE book SET name = '%s', pages = '%s', author = '%s', published_date = '%s' WHERE id = %d;";
+    private final static String GET_BOOK_SQL_QUERY = "SELECT * FROM book WHERE id = %d;";
 
     public void saveBook(Book book) {
         try {
             // Bu yerda database bilan bog'lanish hosil qildik
             Connection connection = DriverManager.getConnection(
-                    dbUrl, dbUser, dbPassword
+                    dbUrl,
+                    dbUser,
+                    dbPassword
             );
 
             Statement statement = connection.createStatement();
 
-            String query = "INSERT INTO book(name, author, pages, published_date) " +
-                    "values('" + book.getName() + "','" + book.getAuthor() + "','" + book.getPages() + "','" + book.getPublishedDate() + "');";
+            String query = String.format(
+                    SAVE_BOOK_SQL_QUERY,
+                    book.getName(),
+                    book.getAuthor(),
+                    book.getPages(),
+                    book.getPublishedDate());
 
             statement.execute(query);
             statement.close();
@@ -45,12 +58,13 @@ public class ConnectionService {
         try {
             // Bu yerda database bilan bog'lanish hosil qildik
             Connection connection = DriverManager.getConnection(
-                    dbUrl, dbUser, dbPassword
+                    dbUrl,
+                    dbUser,
+                    dbPassword
             );
             Statement statement = connection.createStatement();
 
-            String query = "SELECT * FROM book;";
-            ResultSet resultSet = statement.executeQuery(query);
+            ResultSet resultSet = statement.executeQuery(GET_BOOKS_LIST_SQL_QUERY);
 
             while (resultSet.next()) {
                 int id = resultSet.getInt("id");
@@ -80,14 +94,18 @@ public class ConnectionService {
 
     public void deleteBook(Integer id) {
         // Bu yerda database bilan bog'lanish hosil qildik
-        Connection connection = null;
+
         try {
-            connection = DriverManager.getConnection(
-                    dbUrl, dbUser, dbPassword
+            Connection connection = DriverManager.getConnection(
+                    dbUrl,
+                    dbUser,
+                    dbPassword
             );
             Statement statement = connection.createStatement();
 
-            String query = "DELETE FROM book WHERE id =" + id + ";";
+            String query = String.format(
+                    DELETE_BOOK_SQL_QUERY,
+                    id);
 
             statement.execute(query);
             statement.close();
@@ -95,7 +113,6 @@ public class ConnectionService {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-
     }
 
     public void editBook(Integer id, Book book) {
@@ -106,32 +123,62 @@ public class ConnectionService {
                     dbPassword
             );
             Statement statement = connection.createStatement();
-            String query = "UPDATE book set ";
 
-            if (!book.getName().isEmpty()) {
-                query = query + " name = '" + book.getName() + "',";
-            } else if (!book.getPages().isEmpty()) {
-                query = query + " pages = '" + book.getPages() + "',";
-            } else if (!book.getAuthor().isEmpty()) {
-                query = query + " author = '" + book.getAuthor() + "',";
-            } else if (!book.getPublishedDate().isEmpty()) {
-                query = query + " published_date = '" + book.getPublishedDate() + "',";
-            }
+            Book dbBook = getBook(id);
 
-            if (!query.equals("UPDATE book set ")) {
-                if (query.endsWith(",")) {
-                    query = query.substring(0, query.length() - 1);
-                    query = query + "WHERE id=" + id + ";";
-                    statement.execute(query);
-                }
-            }
+            String query = String.format(
+                    UPDATE_BOOK_SQL_QUERY,
+                    book.getName() != null ? book.getName() : dbBook.getName(),
+                    book.getPages() != null ? book.getPages() : dbBook.getPages(),
+                    book.getAuthor() != null ? book.getAuthor() : dbBook.getAuthor(),
+                    book.getPublishedDate() != null ? book.getPublishedDate() : dbBook.getPublishedDate(),
+                    id);
 
+            statement.execute(query);
             statement.close();
             connection.close();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
 
+    }
+
+    public Book getBook(Integer bookId) {
+        Book book = new Book();
+        try {
+            Connection connection = DriverManager.getConnection(
+                    dbUrl,
+                    dbUser,
+                    dbPassword
+            );
+
+            String query = String.format(
+                    GET_BOOK_SQL_QUERY,
+                    bookId);
+
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(query);
+
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                String author = resultSet.getString("author");
+                String pages = resultSet.getString("pages");
+                String publishedDate = resultSet.getString("published_date");
+
+                book = new Book(
+                        id,
+                        name,
+                        author,
+                        pages,
+                        publishedDate
+                );
+            }
+
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return book;
     }
 
 }

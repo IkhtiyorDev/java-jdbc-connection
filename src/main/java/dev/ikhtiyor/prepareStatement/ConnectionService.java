@@ -13,11 +13,18 @@ import java.util.List;
 public class ConnectionService {
 
     //Database bilan bog'lanishimiz uchun url. Bunda { java-jdbc-connection } database nomi
-    private String dbUrl = "jdbc:postgresql://localhost:5432/java-jdbc-connection";
+    private final static String dbUrl = "jdbc:postgresql://localhost:5432/java-jdbc-connection";
     //Database bilan bog'lanishimiz uchun user nomi.
-    private String dbUser = "postgres";
+    private final static String dbUser = "postgres";
     //Database bilan bog'lanishimiz uchun parol.
-    private String dbPassword = "root123";
+    private final static String dbPassword = "root123";
+
+
+    private final static String SAVE_BOOK_SQL_QUERY = "INSERT INTO book(name, author, pages, published_date) values(?,?,?,?);";
+    private final static String GET_BOOKS_LIST_SQL_QUERY = "SELECT * FROM book;";
+    private final static String DELETE_BOOK_SQL_QUERY = "DELETE FROM book WHERE id = ?;";
+    private final static String UPDATE_BOOK_SQL_QUERY = "UPDATE book SET  name = ?, pages = ?, author = ?, published_date = ? WHERE id= ?;";
+    private final static String GET_BOOK_SQL_QUERY = "";
 
     public void saveBook(Book book) {
         try {
@@ -26,9 +33,7 @@ public class ConnectionService {
                     dbUrl, dbUser, dbPassword
             );
 
-            String query = "INSERT INTO book(name, author, pages, published_date) values(?,?,?,?);";
-
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            PreparedStatement preparedStatement = connection.prepareStatement(SAVE_BOOK_SQL_QUERY);
             preparedStatement.setString(1, book.getName());
             preparedStatement.setString(2, book.getAuthor());
             preparedStatement.setString(3, book.getPages());
@@ -51,8 +56,7 @@ public class ConnectionService {
                     dbUrl, dbUser, dbPassword
             );
 
-            String query = "SELECT * FROM book;";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            PreparedStatement preparedStatement = connection.prepareStatement(GET_BOOKS_LIST_SQL_QUERY);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
@@ -89,8 +93,7 @@ public class ConnectionService {
                     dbUrl, dbUser, dbPassword
             );
 
-            String query = "DELETE FROM book WHERE id = ?;";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BOOK_SQL_QUERY);
             preparedStatement.setInt(1, id);
 
             preparedStatement.executeUpdate();
@@ -108,37 +111,20 @@ public class ConnectionService {
                     dbUser,
                     dbPassword
             );
-            String query = "UPDATE book set ";
 
-            if (!book.getName().isEmpty()) {
-                query = query + " name = ?,";
-            } else if (!book.getPages().isEmpty()) {
-                query = query + " pages = ?,";
-            } else if (!book.getAuthor().isEmpty()) {
-                query = query + " author = ?,";
-            } else if (!book.getPublishedDate().isEmpty()) {
-                query = query + " published_date = ?,";
-            }
+            PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_BOOK_SQL_QUERY);
 
-            if (!query.equals("UPDATE book set ")) {
-                if (query.endsWith(",")) {
-                    query = query.substring(0, query.length() - 1);
-                }
-                query = query + "WHERE id= ? ;";
+            preparedStatement.setString(1, book.getName());
+            preparedStatement.setString(2, book.getPages());
+            preparedStatement.setString(3, book.getAuthor());
+            preparedStatement.setString(4, book.getPublishedDate());
+            preparedStatement.setInt(5, id);
 
-                PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.executeUpdate();
 
-                preparedStatement.setString(1, book.getName());
-                preparedStatement.setString(2, book.getPages());
-                preparedStatement.setString(3, book.getAuthor());
-                preparedStatement.setString(4, book.getPublishedDate());
-                preparedStatement.setInt(5, id);
+            preparedStatement.close();
+            connection.close();
 
-                preparedStatement.executeUpdate();
-
-                preparedStatement.close();
-                connection.close();
-            }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
